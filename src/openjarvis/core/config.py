@@ -1225,7 +1225,7 @@ class WhatsAppBaileysChannelConfig:
     """Per-channel config for WhatsApp via Baileys protocol."""
 
     auth_dir: str = ""  # Defaults to ~/.openjarvis/whatsapp_auth
-    assistant_name: str = "Jarvis"
+    assistant_name: str = "Polar"
     assistant_has_own_number: bool = False
 
 
@@ -1550,7 +1550,7 @@ class DigestConfig:
     enabled: bool = False
     schedule: str = "0 6 * * *"
     timezone: str = "America/Los_Angeles"
-    persona: str = "jarvis"
+    persona: str = "Polar"
     sections: List[str] = field(
         default_factory=lambda: ["messages", "calendar", "health", "world"]
     )
@@ -2165,7 +2165,7 @@ ssrf_protection = true
 
 # [channel.whatsapp_baileys]
 # auth_dir = ""               # Defaults to ~/.openjarvis/whatsapp_auth
-# assistant_name = "Jarvis"
+# assistant_name = "Polar"
 # assistant_has_own_number = false
 """
     if host:
