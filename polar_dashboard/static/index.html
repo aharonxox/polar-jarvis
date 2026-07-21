@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Polar — Voice Session Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #0A0A0B; --panel: #111113; --panel2: #1A1A1E;
+    --text: #E8E8EA; --muted: #9A9AA2; --accent: #5EC8FF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Plus Jakarta Sans", Inter, sans-serif;
+  }
+  header {
+    padding: 28px 36px; display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid #222;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #444; }
+  .dot.on { background: #4ADE80; box-shadow: 0 0 8px #4ADE80; }
+  h1 { font-size: 20px; margin: 0; font-weight: 600; }
+  .status { color: var(--muted); font-size: 13px; }
+  main { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; padding: 28px 36px; }
+  section h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 14px; }
+  .card {
+    background: linear-gradient(180deg, var(--panel2), var(--panel));
+    border: 1px solid #222; border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+  }
+  .card .name { font-weight: 600; font-size: 15px; }
+  .card .meta { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; background: rgba(94,200,255,.15); color: var(--accent); }
+  .event { padding: 10px 0; border-bottom: 1px solid #1e1e22; font-size: 13px; }
+  .event .kind { color: var(--accent); font-weight: 600; margin-right: 8px; }
+  .event .time { color: var(--muted); float: right; font-size: 11px; }
+  .empty { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="dot" id="statusDot"></div>
+    <h1>Polar</h1>
+    <span class="status" id="statusText">connecting…</span>
+  </header>
+  <main>
+    <section>
+      <h2>Projects &amp; Sessions</h2>
+      <div id="projects"><p class="empty">No projects started yet — say "Polar, start a new project called …"</p></div>
+    </section>
+    <section>
+      <h2>Live Activity</h2>
+      <div id="events"><p class="empty">Waiting for events…</p></div>
+    </section>
+  </main>
+  <script>
+    async function refresh() {
+      try {
+        const res = await fetch('/api/state');
+        const data = await res.json();
+        document.getElementById('statusDot').classList.toggle('on', data.assistant_online);
+        document.getElementById('statusText').textContent = data.assistant_online
+          ? 'listening for "Polar" or double-clap' : 'offline';
+
+        const projectsEl = document.getElementById('projects');
+        projectsEl.innerHTML = data.projects.length ? data.projects.map(p => `
+          <div class="card">
+            <div class="name">${p.name}</div>
+            <div class="meta">${new Date(p.created_at * 1000).toLocaleString()} <span class="badge">${p.status}</span></div>
+          </div>`).join('') : '<p class="empty">No projects started yet — say "Polar, start a new project called …"</p>';
+
+        const eventsEl = document.getElementById('events');
+        eventsEl.innerHTML = data.events.length ? data.events.map(e => `
+          <div class="event">
+            <span class="kind">${e.event}</span>${e.transcript || e.text || e.project_name || ''}
+            <span class="time">${new Date((e.ts || e.received_at) * 1000).toLocaleTimeString()}</span>
+          </div>`).join('') : '<p class="empty">Waiting for events…</p>';
+      } catch (e) {
+        document.getElementById('statusText').textContent = 'dashboard backend not running';
+      }
+    }
+    refresh();
+    setInterval(refresh, 2000);
+  </script>
+</body>
+</html>
